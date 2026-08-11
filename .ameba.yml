@@ -1,0 +1,6 @@
+# Ameba configuration for meilisearch-crystal.
+#
+# Ameba defaults apply to all .cr files in the project (lib/ excluded
+# automatically). When the codebase grows problems, exclude them one at a
+# time with `ameba --gen-config`, following ameba's convention of removing
+# entries as they get fixed.
