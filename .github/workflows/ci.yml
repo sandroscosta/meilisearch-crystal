@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        crystal_version: [1.20.3, latest]
+        crystal_version: [1.20.0]
     runs-on: ${{ matrix.os }}
     continue-on-error: false
     env:
@@ -40,7 +40,4 @@ jobs:
       - name: Check format
         run: crystal tool format --check
       - name: Lint
-        # ameba v1.7.0-dev doesn't ship a pre-built binary, so we compile and run
-        # the CLI source in one step. This also works on newer Crystal versions
-        # where the previous 1.6.x stable release failed to build.
-        run: crystal run lib/ameba/bin/ameba.cr
+        run: bin/ameba

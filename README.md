@@ -222,8 +222,7 @@ docker run --rm -p 7700:7700 -e MEILI_MASTER_KEY=test-master-key getmeili/meilis
 MEILISEARCH_INTEGRATION=1 MEILISEARCH_API_KEY=test-master-key crystal spec
 
 # lint + format
-# ameba v1.7.0-dev is installed from source; compile and run the CLI source.
-crystal run lib/ameba/bin/ameba.cr
+bin/ameba
 crystal tool format --check
 ```
 
