@@ -18,7 +18,7 @@ module Meilisearch::Crystal
     include JSON::Serializable
 
     getter message : String
-    @[JSON::Field(converter: Error::CodeConverter)]
+    @[JSON::Field(converter: CodeConverter)]
     getter code : Code
     getter type : String
     getter link : URI
@@ -34,6 +34,19 @@ module Meilisearch::Crystal
 
       def to_json(value : Code, json : JSON::Builder)
         json.string(value.to_s.camelcase(lower: true))
+      end
+    end
+
+    # JSON::Serializable's generated `to_json` fails to resolve converters on
+    # the installed Crystal toolchain (1.20.3), so we serialize the code field
+    # manually via the converter. The client only ever *parses* error
+    # envelopes; serialization exists for completeness/tests.
+    def to_json(json : JSON::Builder)
+      json.object do
+        json.field("message", message)
+        json.field("code") { CodeConverter.to_json(code, json) }
+        json.field("type", type)
+        json.field("link", link)
       end
     end
 

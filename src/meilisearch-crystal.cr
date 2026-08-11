@@ -5,6 +5,7 @@
 # ```
 require "./meilisearch/crystal/version"
 require "./meilisearch/crystal/error"
+require "./meilisearch/crystal/exceptions"
 
 module Meilisearch::Crystal
 end
