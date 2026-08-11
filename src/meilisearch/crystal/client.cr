@@ -66,6 +66,49 @@ module Meilisearch::Crystal
       SettingsAPI.new(self)
     end
 
+    def keys : Keys
+      Keys.new(self)
+    end
+
+    def batches : Batches
+      Batches.new(self)
+    end
+
+    def experimental_features : ExperimentalFeaturesAPI
+      ExperimentalFeaturesAPI.new(self)
+    end
+
+    def network : Network
+      Network.new(self)
+    end
+
+    def health : Health
+      Management.new(self).health
+    end
+
+    def version : Version
+      Management.new(self).version
+    end
+
+    def stats : Stats
+      Management.new(self).stats
+    end
+
+    def create_dump : TaskResult
+      Management.new(self).create_dump
+    end
+
+    def create_snapshot : TaskResult
+      Management.new(self).create_snapshot
+    end
+
+    def generate_tenant_token(api_key_uid : String, search_rules,
+                              expires_at : Time? = nil,
+                              api_key : String? = @api_key) : String
+      secret = api_key || raise MissingValue.new("An API key is required to sign a tenant token")
+      TenantToken.generate(secret, api_key_uid, search_rules, expires_at)
+    end
+
     # Fetches a task by uid, polling until it reaches a terminal status
     # (succeeded / failed / canceled). Raises `TimeoutError` when the task
     # does not complete within the client's timeout.

@@ -77,5 +77,16 @@ module Meilisearch::Crystal
     def tasks(limit : Int32? = nil) : List(Task)
       client.tasks.list(index_uids: [uid], limit: limit)
     end
+
+    def stats : Index::Stats
+      Management.new(client).index_stats(uid)
+    end
+
+    def with_tenant_token(api_key_uid : String, search_rules,
+                          expires_at : Time? = nil,
+                          api_key : String? = client.api_key) : IndexClient
+      token = client.generate_tenant_token(api_key_uid, search_rules, expires_at, api_key)
+      Client.new(url: client.url, api_key: token, timeout: client.timeout).index(uid)
+    end
   end
 end
