@@ -25,4 +25,16 @@ module Meilisearch::Crystal
   # Raised when accessing a nilable field that is absent.
   class MissingValue < Exception
   end
+
+  # Raised when the server responds with a non-2xx status. Carries the parsed
+  # `Error` value (message/code/type/link) from the response envelope.
+  class ApiError < Exception
+    getter error : Error
+
+    def initialize(@error : Error)
+      super(@error.message)
+    end
+
+    delegate code, to: @error
+  end
 end

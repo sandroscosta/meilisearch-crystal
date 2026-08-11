@@ -202,7 +202,7 @@ shards install
 crystal spec spec/meilisearch/crystal/*_spec.cr
 
 # integration specs — spin up a real Meilisearch first:
-docker run --rm -p 7700:7700 -e MEILI_MASTER_KEY=test-master-key getmeili/meilisearch:latest
+docker run --rm -p 7700:7700 -e MEILI_MASTER_KEY=test-master-key getmeili/meilisearch:v1.53.0
 crystal spec
 
 # lint + format
