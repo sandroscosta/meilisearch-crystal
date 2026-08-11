@@ -53,9 +53,11 @@ module Meilisearch::Crystal
     include Enumerable(T)
 
     field results : Array(T)
-    field offset : Int32
-    field limit : Int32
+    field offset : Int32?
+    field limit : Int32?
     field total : Int32
+    field from : Int64?
+    field next : Int64?
 
     def each(& : T ->) : Nil
       results.each { |result| yield result }

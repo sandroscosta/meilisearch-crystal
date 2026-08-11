@@ -14,14 +14,14 @@ module Meilisearch::Crystal
   #   settings.timeout = 10.seconds
   # end
   # ```
-  class Settings
+  class Configuration
     property url : String?
     property api_key : String?
     property timeout : Time::Span?
   end
 
   private macro def_settings
-    @@settings = Settings.new
+    @@settings = Configuration.new
     @@client : Client?
 
     def self.settings
@@ -30,7 +30,7 @@ module Meilisearch::Crystal
 
     # Yields the module-level settings; any subsequent `client` call is rebuilt
     # from the updated defaults.
-    def self.configure(&) : Settings
+    def self.configure(&) : Configuration
       yield @@settings
       @@client = nil
       @@settings

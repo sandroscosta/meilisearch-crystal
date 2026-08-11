@@ -30,5 +30,52 @@ module Meilisearch::Crystal
     def documents : Documents
       Documents.new(client)
     end
+
+    # Searches this index with a typed query object.
+    def search(query : Query) : SearchResponse(JSON::Any)
+      client.search.search(uid, query)
+    end
+
+    def search(query : Query, as type : T.class) : SearchResponse(T) forall T
+      client.search.search(uid, query, as: T)
+    end
+
+    # Searches this index from a query string.
+    def search(q : String? = nil) : SearchResponse(JSON::Any)
+      client.search.search(uid, q)
+    end
+
+    def search(q : String?, as type : T.class) : SearchResponse(T) forall T
+      client.search.search(uid, q, as: T)
+    end
+
+    def facet_search(request : FacetSearchRequest) : FacetSearchResponse
+      client.search.facet(uid, request)
+    end
+
+    def similar(id : String | Int32 | Int64, embedder : String) : SearchResponse(JSON::Any)
+      client.search.similar(uid, id, embedder)
+    end
+
+    def similar(id : String | Int32 | Int64, embedder : String, as type : T.class) : SearchResponse(T) forall T
+      client.search.similar(uid, id, embedder, as: T)
+    end
+
+    # Fetches this index's current typed settings.
+    def settings : Settings
+      client.settings.get(uid)
+    end
+
+    def update_settings(settings : Settings) : TaskResult
+      client.settings.update(uid, settings)
+    end
+
+    def reset_settings : TaskResult
+      client.settings.reset(uid)
+    end
+
+    def tasks(limit : Int32? = nil) : List(Task)
+      client.tasks.list(index_uids: [uid], limit: limit)
+    end
   end
 end

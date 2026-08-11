@@ -15,6 +15,8 @@ require "./meilisearch/crystal/tasks"
 require "./meilisearch/crystal/index"
 require "./meilisearch/crystal/indexes"
 require "./meilisearch/crystal/documents"
+require "./meilisearch/crystal/search"
+require "./meilisearch/crystal/settings"
 require "./meilisearch/crystal/index_client"
 
 module Meilisearch::Crystal

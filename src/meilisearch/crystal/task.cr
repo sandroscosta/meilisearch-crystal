@@ -57,7 +57,7 @@ module Meilisearch::Crystal
 
   # The minimal task envelope returned by task endpoints: the fields every
   # task shares, independent of its type.
-  struct BasicTask
+  abstract struct BasicTask
     include JSON::Serializable
 
     # Terminal and lifecycle statuses of a Meilisearch task.
@@ -122,5 +122,146 @@ module Meilisearch::Crystal
 
     @[JSON::Field(key: "taskUid")]
     getter task_uid : Int64?
+    @[JSON::Field(key: "indexUid")]
+    getter index_uid : String?
+    @[JSON::Field(converter: TaskStatusCodeConverter)]
+    getter status : BasicTask::Status?
+    @[JSON::Field(converter: TaskTypeConverter)]
+    getter type : BasicTask::Type?
+    @[JSON::Field(key: "enqueuedAt", converter: TaskTimeConverter)]
+    getter enqueued_at : Time?
+  end
+
+  abstract struct Task < BasicTask
+    @[JSON::Field(key: "batchUid")]
+    getter batch_uid : Int64?
+    @[JSON::Field(key: "canceledBy")]
+    getter canceled_by : Int64?
+    @[JSON::Field(converter: DurationConverter)]
+    getter duration : Time::Span?
+    getter error : Error?
+
+    def self.new(pull : JSON::PullParser) : Task
+      from_json(pull.read_raw)
+    end
+
+    def self.from_json(source : String | IO) : Task
+      raw = source.is_a?(String) ? source : source.gets_to_end
+      case JSON.parse(raw)["type"].as_s
+      when "indexCreation"            then IndexCreation.parse(raw)
+      when "indexUpdate"              then IndexUpdate.parse(raw)
+      when "indexDeletion"            then IndexDeletion.parse(raw)
+      when "indexSwap"                then IndexSwap.parse(raw)
+      when "documentAdditionOrUpdate" then DocumentAdditionOrUpdate.parse(raw)
+      when "documentDeletion", "documentDeletionByFilter", "documentClear"
+        DocumentDeletion.parse(raw)
+      when "settingsUpdate"   then SettingsUpdate.parse(raw)
+      when "dumpCreation"     then DumpCreation.parse(raw)
+      when "taskCancelation"  then TaskCancelation.parse(raw)
+      when "taskDeletion"     then TaskDeletion.parse(raw)
+      when "snapshotCreation" then SnapshotCreation.parse(raw)
+      else                         Unknown.parse(raw)
+      end
+    end
+
+    macro parseable
+      def self.parse(source : String)
+        new_from_json_pull_parser(JSON::PullParser.new(source))
+      end
+    end
+
+    struct IndexDetails < Resource
+      field primary_key : String?
+      field deleted_documents : Int64?
+    end
+
+    struct SwapDetails < Resource
+      field swaps : Array(JSON::Any)?
+    end
+
+    struct DocumentDetails < Resource
+      field received_documents : Int64?
+      field indexed_documents : Int64?
+      field deleted_documents : Int64?
+      field provided_ids : Int64?
+      field original_filter : String?
+    end
+
+    struct SettingsDetails < Resource
+      field ranking_rules : Array(String)?
+      field filterable_attributes : Array(String)?
+      field sortable_attributes : Array(String)?
+      field searchable_attributes : Array(String)?
+    end
+
+    struct CountDetails < Resource
+      field matched_tasks : Int64?
+      field canceled_tasks : Int64?
+      field deleted_tasks : Int64?
+    end
+
+    struct DumpDetails < Resource
+      field dump_uid : String?
+    end
+
+    struct IndexCreation < Task
+      parseable
+      getter details : IndexDetails?
+    end
+
+    struct IndexUpdate < Task
+      parseable
+      getter details : IndexDetails?
+    end
+
+    struct IndexDeletion < Task
+      parseable
+      getter details : IndexDetails?
+    end
+
+    struct IndexSwap < Task
+      parseable
+      getter details : SwapDetails?
+    end
+
+    struct DocumentAdditionOrUpdate < Task
+      parseable
+      getter details : DocumentDetails?
+    end
+
+    struct DocumentDeletion < Task
+      parseable
+      getter details : DocumentDetails?
+    end
+
+    struct SettingsUpdate < Task
+      parseable
+      getter details : SettingsDetails?
+    end
+
+    struct DumpCreation < Task
+      parseable
+      getter details : DumpDetails?
+    end
+
+    struct TaskCancelation < Task
+      parseable
+      getter details : CountDetails?
+    end
+
+    struct TaskDeletion < Task
+      parseable
+      getter details : CountDetails?
+    end
+
+    struct SnapshotCreation < Task
+      parseable
+      getter details : JSON::Any?
+    end
+
+    struct Unknown < Task
+      parseable
+      getter details : JSON::Any?
+    end
   end
 end

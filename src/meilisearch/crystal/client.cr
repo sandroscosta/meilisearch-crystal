@@ -56,6 +56,16 @@ module Meilisearch::Crystal
       Tasks.new(self)
     end
 
+    # Search, facet, similar-document, and multi-index operations.
+    def search : Search
+      Search.new(self)
+    end
+
+    # Index settings operations.
+    def settings : SettingsAPI
+      SettingsAPI.new(self)
+    end
+
     # Fetches a task by uid, polling until it reaches a terminal status
     # (succeeded / failed / canceled). Raises `TimeoutError` when the task
     # does not complete within the client's timeout.
