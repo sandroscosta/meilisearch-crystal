@@ -1,0 +1,19 @@
+name: meilisearch-crystal
+version: 0.1.0
+
+description: A type-safe Meilisearch client for Crystal, inspired by the meilisearch-ruby SDK.
+
+authors:
+  - Sandro Costa <sandro.nbs@gmail.com>
+
+crystal: '>= 1.20.3'
+
+license: MIT
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    version: ~> 1.6.4
+  webmock:
+    github: manastech/webmock.cr
+    version: ~> 0.14.0
