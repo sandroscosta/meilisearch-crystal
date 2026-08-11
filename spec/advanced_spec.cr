@@ -28,7 +28,10 @@ module Meilisearch::Crystal
     it "gets network topology" do
       body = %({"self":null,"remotes":{},"shards":{},"leader":null,"version":"00000000-0000-0000-0000-000000000000"})
       WebMock.stub(:get, "http://localhost:7700/network").to_return(body: body)
-      Client.new.network.get.remotes.should be_empty
+      WebMock.stub(:patch, "http://localhost:7700/network").with(body: %({})).to_return(body: body)
+      network = Client.new.network
+      network.get.remotes.should be_empty
+      network.update(Hash(String, JSON::Any).new).shards.should be_empty
     end
   end
 end

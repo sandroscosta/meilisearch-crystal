@@ -1,11 +1,13 @@
 # Typed search models and endpoints.
 module Meilisearch::Crystal
+  # Controls how query terms are matched against documents.
   enum MatchingStrategy
     Last
     All
     Frequency
   end
 
+  # Hybrid keyword/vector search configuration.
   struct Hybrid < Resource
     field embedder : String
     field semantic_ratio : Float64?
@@ -14,6 +16,7 @@ module Meilisearch::Crystal
     end
   end
 
+  # Per-query options used during federated search.
   struct FederationOptions < Resource
     field weight : Float64?
     field remote : String?
@@ -31,7 +34,7 @@ module Meilisearch::Crystal
     field limit : Int32?
     field page : Int32?
     field hits_per_page : Int32?
-    field filter : String | Array(String) | Nil
+    field filter : (String | Array(String))?
     field facets : Array(String)?
     field attributes_to_retrieve : Array(String)?
     field attributes_to_crop : Array(String)?
@@ -61,7 +64,7 @@ module Meilisearch::Crystal
                    @limit : Int32? = nil,
                    @page : Int32? = nil,
                    @hits_per_page : Int32? = nil,
-                   @filter : String | Array(String) | Nil = nil,
+                   @filter : (String | Array(String))? = nil,
                    @facets : Array(String)? = nil,
                    @attributes_to_retrieve : Array(String)? = nil,
                    @attributes_to_crop : Array(String)? = nil,
@@ -86,11 +89,13 @@ module Meilisearch::Crystal
     end
   end
 
+  # Minimum and maximum numeric values for a facet.
   struct FacetStats < Resource
     field min : Float64
     field max : Float64
   end
 
+  # Typed search results and response metadata.
   struct SearchResponse(T) < Resource
     include Enumerable(T)
 
@@ -115,16 +120,18 @@ module Meilisearch::Crystal
     end
   end
 
+  # One matching facet value and its document count.
   struct FacetHit < Resource
     field value : String
     field count : Int64
   end
 
+  # Parameters for searching within an index facet.
   struct FacetSearchRequest < Resource
     field facet_name : String
     field facet_query : String?
     field q : String?
-    field filter : String | Array(String) | Nil
+    field filter : (String | Array(String))?
     @[JSON::Field(key: "matchingStrategy", converter: Meilisearch::Crystal::LowerCamelEnumConverter(Meilisearch::Crystal::MatchingStrategy))]
     getter matching_strategy : MatchingStrategy?
     field exhaustive_facet_count : Bool?
@@ -132,12 +139,13 @@ module Meilisearch::Crystal
     def initialize(@facet_name : String,
                    @facet_query : String? = nil,
                    @q : String? = nil,
-                   @filter : String | Array(String) | Nil = nil,
+                   @filter : (String | Array(String))? = nil,
                    @matching_strategy : MatchingStrategy? = nil,
                    @exhaustive_facet_count : Bool? = nil)
     end
   end
 
+  # Facet-search matches and timing metadata.
   struct FacetSearchResponse < Resource
     field facet_hits : Array(FacetHit)
     field facet_query : String?
@@ -146,10 +154,12 @@ module Meilisearch::Crystal
   end
 
   module MultiSearch
+    # Results from multiple independent index searches.
     struct Response(T) < Resource
       field results : Array(SearchResponse(T))
     end
 
+    # Options controlling how federated hits are merged.
     struct Federation < Resource
       field offset : Int32?
       field limit : Int32?
@@ -167,11 +177,13 @@ module Meilisearch::Crystal
       end
     end
 
+    # Origin metadata attached to a federated hit.
     struct FederationMetadata < Resource
       field index_uid : String
       field queries_position : Int32
     end
 
+    # A typed document paired with its federation origin.
     struct FederatedResult(T)
       getter document : T
       getter federation : FederationMetadata
@@ -195,6 +207,7 @@ module Meilisearch::Crystal
     end
   end
 
+  # Search, facet-search, similarity, and multi-search operations.
   class Search < API
     def search(uid : String, query : Query) : SearchResponse(JSON::Any)
       search(uid, query, JSON::Any)

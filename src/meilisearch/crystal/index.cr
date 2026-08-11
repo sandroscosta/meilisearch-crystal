@@ -1,5 +1,6 @@
 # Typed index metadata and index-scoped response shapes.
 module Meilisearch::Crystal
+  # Metadata describing a Meilisearch index.
   struct Index < Resource
     field uid : String
     field primary_key : String?

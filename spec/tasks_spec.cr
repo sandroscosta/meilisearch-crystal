@@ -16,7 +16,8 @@ module Meilisearch::Crystal
       body = %({"uid":7,"batchUid":7,"indexUid":"movies","status":"succeeded","type":"documentAdditionOrUpdate","canceledBy":null,"details":{"receivedDocuments":2,"indexedDocuments":2},"error":null,"duration":"PT0.005S","enqueuedAt":"2026-08-11T21:47:28Z","startedAt":"2026-08-11T21:47:28Z","finishedAt":"2026-08-11T21:47:28Z"})
       task = Task.from_json(body)
       task.should be_a(Task::DocumentAdditionOrUpdate)
-      task.as(Task::DocumentAdditionOrUpdate).details.not_nil!.indexed_documents.should eq(2)
+      details = task.as(Task::DocumentAdditionOrUpdate).details || raise "expected task details"
+      details.indexed_documents.should eq(2)
       task.status.succeeded?.should be_true
     end
 

@@ -1,15 +1,18 @@
 # Typed index settings and settings endpoints.
 module Meilisearch::Crystal
+  # Selects whether prefix matching is prepared at indexing time.
   enum PrefixSearch
     IndexingTime
     Disabled
   end
 
+  # Selects word- or attribute-level proximity ranking.
   enum ProximityPrecision
     ByWord
     ByAttribute
   end
 
+  # Supported sources for vector embedding generation.
   enum EmbedderSource
     OpenAi
     HuggingFace
@@ -18,11 +21,13 @@ module Meilisearch::Crystal
     UserProvided
   end
 
+  # Word-length thresholds for allowing one or two typos.
   struct TypoWordSize < Resource
     field one_typo : Int32
     field two_typos : Int32
   end
 
+  # Typo-tolerance settings for an index.
   struct TypoTolerance < Resource
     field enabled : Bool
     field min_word_size_for_typos : TypoWordSize
@@ -31,20 +36,24 @@ module Meilisearch::Crystal
     field disable_on_numbers : Bool?
   end
 
+  # Facet limits and ordering configuration.
   struct Faceting < Resource
     field max_values_per_facet : Int32
     field sort_facet_values_by : Hash(String, String)
   end
 
+  # Index-wide pagination limits.
   struct Pagination < Resource
     field max_total_hits : Int32
   end
 
+  # Locale assignment for matching attribute patterns.
   struct LocalizedAttribute < Resource
     field locales : Array(String)
     field attribute_patterns : Array(String)
   end
 
+  # Configuration for one named document embedder.
   struct Embedder < Resource
     @[JSON::Field(converter: Meilisearch::Crystal::LowerCamelEnumConverter(Meilisearch::Crystal::EmbedderSource))]
     getter source : EmbedderSource
@@ -123,6 +132,7 @@ module Meilisearch::Crystal
     end
   end
 
+  # Whole-object and per-setting index configuration operations.
   class SettingsAPI < API
     def get(uid : String) : Settings
       response(client.get(settings_path(uid)), as: Settings)
@@ -136,6 +146,7 @@ module Meilisearch::Crystal
       response(client.delete(settings_path(uid)), as: TaskResult)
     end
 
+    # Defines typed read and reset methods for an individual setting.
     macro setting(name, path, type)
       def {{ name.id }}(uid : String) : {{ type }}
         response(client.get(settings_path(uid) + "/" + {{ path }}), as: {{ type }})
@@ -146,26 +157,26 @@ module Meilisearch::Crystal
       end
     end
 
-    setting displayed_attributes, "displayed-attributes", Array(String)
-    setting searchable_attributes, "searchable-attributes", Array(String)
-    setting filterable_attributes, "filterable-attributes", Array(String)
-    setting sortable_attributes, "sortable-attributes", Array(String)
-    setting ranking_rules, "ranking-rules", Array(String)
-    setting stop_words, "stop-words", Array(String)
-    setting non_separator_tokens, "non-separator-tokens", Array(String)
-    setting separator_tokens, "separator-tokens", Array(String)
-    setting dictionary, "dictionary", Array(String)
-    setting synonyms, "synonyms", Hash(String, Array(String))
-    setting distinct_attribute, "distinct-attribute", String?
-    setting typo_tolerance, "typo-tolerance", TypoTolerance
-    setting faceting, "faceting", Faceting
-    setting pagination, "pagination", Pagination
-    setting proximity_precision, "proximity-precision", ProximityPrecision
-    setting embedders, "embedders", Hash(String, Embedder)
-    setting search_cutoff_ms, "search-cutoff-ms", Int64?
-    setting localized_attributes, "localized-attributes", Array(LocalizedAttribute)
-    setting facet_search, "facet-search", Bool
-    setting prefix_search, "prefix-search", PrefixSearch
+    setting(displayed_attributes, "displayed-attributes", Array(String))
+    setting(searchable_attributes, "searchable-attributes", Array(String))
+    setting(filterable_attributes, "filterable-attributes", Array(String))
+    setting(sortable_attributes, "sortable-attributes", Array(String))
+    setting(ranking_rules, "ranking-rules", Array(String))
+    setting(stop_words, "stop-words", Array(String))
+    setting(non_separator_tokens, "non-separator-tokens", Array(String))
+    setting(separator_tokens, "separator-tokens", Array(String))
+    setting(dictionary, "dictionary", Array(String))
+    setting(synonyms, "synonyms", Hash(String, Array(String)))
+    setting(distinct_attribute, "distinct-attribute", String?)
+    setting(typo_tolerance, "typo-tolerance", TypoTolerance)
+    setting(faceting, "faceting", Faceting)
+    setting(pagination, "pagination", Pagination)
+    setting(proximity_precision, "proximity-precision", ProximityPrecision)
+    setting(embedders, "embedders", Hash(String, Embedder))
+    setting(search_cutoff_ms, "search-cutoff-ms", Int64?)
+    setting(localized_attributes, "localized-attributes", Array(LocalizedAttribute))
+    setting(facet_search, "facet-search", Bool)
+    setting(prefix_search, "prefix-search", PrefixSearch)
 
     private def settings_path(uid : String) : String
       "/indexes/#{URI.encode_path_segment(uid)}/settings"

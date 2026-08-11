@@ -3,6 +3,7 @@
 # Minimal now to power `Client#wait_for_task`; the typed filterable `list`
 # surface expands the models (see the tasks spec).
 module Meilisearch::Crystal
+  # Task lookup and filtered cursor-paginated listing operations.
   class Tasks < API
     # Fetches a single task by uid, raising `Error` if it does not exist.
     def get(uid : Int32 | Int64) : Task
@@ -13,7 +14,7 @@ module Meilisearch::Crystal
     def get?(uid : Int32 | Int64) : Task?
       get(uid)
     rescue error : ApiError
-      return nil if error.code == Error::Code::TaskNotFound
+      return if error.code == Error::Code::TaskNotFound
 
       raise error
     end
@@ -35,8 +36,8 @@ module Meilisearch::Crystal
       query = HTTP::Params.new
       add_csv(query, "uids", uids)
       add_csv(query, "batchUids", batch_uids)
-      add_csv(query, "statuses", statuses.try(&.map { |status| status.to_s.camelcase(lower: true) }))
-      add_csv(query, "types", types.try(&.map { |type| type.to_s.camelcase(lower: true) }))
+      add_csv(query, "statuses", statuses.try(&.map(&.to_s.camelcase(lower: true))))
+      add_csv(query, "types", types.try(&.map(&.to_s.camelcase(lower: true))))
       add_csv(query, "indexUids", index_uids)
       query["limit"] = limit.to_s if limit
       query["from"] = from.to_s if from

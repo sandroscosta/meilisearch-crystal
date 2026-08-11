@@ -4,6 +4,7 @@ module Meilisearch::Crystal
   if ENV["MEILISEARCH_INTEGRATION"]? == "1"
     describe "search integration" do
       it "covers typed, facet, similar, multi, and federated search" do
+        allow_integration_connections
         client = Client.new
         uid = "crystal_search_#{Time.utc.to_unix_ms}"
 
@@ -28,7 +29,8 @@ module Meilisearch::Crystal
           query = Query.new(q: "alien", filter: "year > 1980", sort: ["year:asc"], facets: ["genre"])
           typed = index.search(query, as: IntegrationSearchMovie)
           typed.first.title.should eq("Aliens")
-          typed.facet_distribution.not_nil!["genre"]["Science Fiction"].should eq(1)
+          facets = typed.facet_distribution || raise "expected facet distribution"
+          facets["genre"]["Science Fiction"].should eq(1)
           index.search("alien").first["id"].as_i.should eq(1)
 
           facet = index.facet_search(FacetSearchRequest.new("genre", "sci"))

@@ -4,6 +4,7 @@ module Meilisearch::Crystal
   if ENV["MEILISEARCH_INTEGRATION"]? == "1"
     describe "tasks integration" do
       it "dispatches details and lists with typed filters" do
+        allow_integration_connections
         client = Client.new
         uid = "crystal_tasks_#{Time.utc.to_unix_ms}"
 
@@ -12,7 +13,7 @@ module Meilisearch::Crystal
           result = client.index(uid).documents.upsert(uid, [{id: 1, title: "Alien"}])
           completed = client.wait_for_task(result, poll_interval: 10.milliseconds)
           completed.should be_a(Task::DocumentAdditionOrUpdate)
-          details = completed.as(Task::DocumentAdditionOrUpdate).details.not_nil!
+          details = completed.as(Task::DocumentAdditionOrUpdate).details || raise "expected task details"
           details.received_documents.should eq(1)
           details.indexed_documents.should eq(1)
 

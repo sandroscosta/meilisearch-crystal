@@ -10,7 +10,8 @@ module Meilisearch::Crystal
       settings = Settings.from_json(body)
       settings.prefix_search.should eq(PrefixSearch::IndexingTime)
       settings.proximity_precision.should eq(ProximityPrecision::ByWord)
-      settings.embedders.not_nil!["manual"].source.should eq(EmbedderSource::UserProvided)
+      embedders = settings.embedders || raise "expected embedders"
+      embedders["manual"].source.should eq(EmbedderSource::UserProvided)
     end
 
     it "gets, partially updates, and resets settings" do

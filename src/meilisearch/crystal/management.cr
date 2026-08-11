@@ -2,6 +2,7 @@ require "base64"
 require "openssl/hmac"
 
 module Meilisearch::Crystal
+  # A Meilisearch API key and its permissions.
   struct Key < Resource
     field uid : String
     field name : String?
@@ -17,6 +18,7 @@ module Meilisearch::Crystal
     getter updated_at : Time
   end
 
+  # API-key lifecycle operations.
   class Keys < API
     def list(offset : Int32? = nil, limit : Int32? = nil) : List(Key)
       query = HTTP::Params.new
@@ -32,7 +34,7 @@ module Meilisearch::Crystal
     def get?(uid : String) : Key?
       get(uid)
     rescue error : ApiError
-      return nil if error.code == Error::Code::APIKeyNotFound
+      return if error.code == Error::Code::APIKeyNotFound
       raise error
     end
 
@@ -71,16 +73,19 @@ module Meilisearch::Crystal
     end
   end
 
+  # Server health response.
   struct Health < Resource
     field status : String
   end
 
+  # Server build and package version response.
   struct Version < Resource
     field commit_sha : String
     field commit_date : String
     field pkg_version : String
   end
 
+  # Server-wide database and per-index statistics.
   struct Stats < Resource
     field database_size : Int64
     field used_database_size : Int64?
@@ -88,6 +93,7 @@ module Meilisearch::Crystal
     field indexes : Hash(String, Index::Stats)
   end
 
+  # Health, version, statistics, dump, and snapshot operations.
   class Management < API
     def health : Health
       response(client.get("/health"), as: Health)
@@ -114,6 +120,7 @@ module Meilisearch::Crystal
     end
   end
 
+  # Generates HS256 tenant tokens for scoped search access.
   module TenantToken
     extend self
 

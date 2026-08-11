@@ -1,5 +1,6 @@
 # Index lifecycle API.
 module Meilisearch::Crystal
+  # Index lifecycle, listing, and lookup operations.
   class Indexes < API
     def list(offset : Int32? = nil, limit : Int32? = nil) : List(Index)
       query = HTTP::Params.new
@@ -15,7 +16,7 @@ module Meilisearch::Crystal
     def get?(uid : String) : Index?
       get(uid)
     rescue error : ApiError
-      return nil if error.code == Error::Code::IndexNotFound
+      return if error.code == Error::Code::IndexNotFound
 
       raise error
     end

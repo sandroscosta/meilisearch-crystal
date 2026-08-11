@@ -24,7 +24,7 @@ module Meilisearch::Crystal
     def get?(uid : Int32 | Int64) : Batch?
       get(uid)
     rescue error : ApiError
-      return nil if error.code == Error::Code::BatchNotFound
+      return if error.code == Error::Code::BatchNotFound
 
       raise error
     end

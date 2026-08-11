@@ -33,7 +33,7 @@ module Meilisearch::Crystal
     # When `url`/`api_key` are omitted, environment variables
     # (`MEILISEARCH_URL`, `MEILISEARCH_API_KEY`) are consulted; `timeout`
     # defaults to 5 seconds.
-    def initialize(url : String | URI | Nil = nil, api_key : String? = nil, timeout : Time::Span? = nil)
+    def initialize(url : String | URI? = nil, api_key : String? = nil, timeout : Time::Span? = nil)
       @url = Client.resolve_url(url || ENV[ENV_URL]? || DEFAULT_URL)
       @api_key = api_key || ENV[ENV_API_KEY]?
       @timeout = timeout || DEFAULT_TIMEOUT

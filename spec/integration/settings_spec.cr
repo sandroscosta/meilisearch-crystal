@@ -4,6 +4,7 @@ module Meilisearch::Crystal
   if ENV["MEILISEARCH_INTEGRATION"]? == "1"
     describe "settings integration" do
       it "gets, partially updates, reads, and resets typed settings" do
+        allow_integration_connections
         client = Client.new
         uid = "crystal_settings_#{Time.utc.to_unix_ms}"
 
@@ -22,7 +23,8 @@ module Meilisearch::Crystal
           settings = client.index(uid).settings
           settings.filterable_attributes.should eq(["genre"])
           settings.prefix_search.should eq(PrefixSearch::Disabled)
-          settings.embedders.not_nil!["manual"].dimensions.should eq(3)
+          embedders = settings.embedders || raise "expected embedders"
+          embedders["manual"].dimensions.should eq(3)
           client.settings.ranking_rules(uid).should eq(["words", "typo", "sort"])
 
           reset_task = client.settings.reset_ranking_rules(uid)

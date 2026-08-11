@@ -4,6 +4,7 @@
 # 2xx bodies deserialize into the requested type, non-2xx bodies raise a
 # typed `Error` parsed from the Meilisearch error envelope.
 module Meilisearch::Crystal
+  # Base class shared by all endpoint-specific API clients.
   abstract class API
     getter client : Client
     delegate http, to: @client
@@ -34,8 +35,8 @@ module Meilisearch::Crystal
     # Defines thin forwarding methods to the underlying client.
     macro pass(*methods)
       {% for method in methods %}
-        def {{method.id}}(*args, **options)
-          client.{{method.id}}(*args, **options)
+        def {{ method.id }}(*args, **options)
+          client.{{ method.id }}(*args, **options)
         end
       {% end %}
     end

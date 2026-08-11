@@ -4,6 +4,7 @@ module Meilisearch::Crystal
   if ENV["MEILISEARCH_INTEGRATION"]? == "1"
     describe "indexes and documents integration" do
       it "runs index and document lifecycles against Meilisearch" do
+        allow_integration_connections
         client = Client.new
         indexes = client.indexes
         suffix = Time.utc.to_unix_ms

@@ -132,6 +132,7 @@ module Meilisearch::Crystal
     getter enqueued_at : Time?
   end
 
+  # A complete task response dispatched to a concrete subtype by task type.
   abstract struct Task < BasicTask
     @[JSON::Field(key: "batchUid")]
     getter batch_uid : Int64?
@@ -155,6 +156,13 @@ module Meilisearch::Crystal
       when "documentAdditionOrUpdate" then DocumentAdditionOrUpdate.parse(raw)
       when "documentDeletion", "documentDeletionByFilter", "documentClear"
         DocumentDeletion.parse(raw)
+      else
+        parse_remaining(raw)
+      end
+    end
+
+    private def self.parse_remaining(raw : String) : Task
+      case JSON.parse(raw)["type"].as_s
       when "settingsUpdate"   then SettingsUpdate.parse(raw)
       when "dumpCreation"     then DumpCreation.parse(raw)
       when "taskCancelation"  then TaskCancelation.parse(raw)
@@ -164,21 +172,25 @@ module Meilisearch::Crystal
       end
     end
 
+    # Adds a non-dispatching parser to a concrete task subtype.
     macro parseable
       def self.parse(source : String)
         new_from_json_pull_parser(JSON::PullParser.new(source))
       end
     end
 
+    # Details reported by index lifecycle tasks.
     struct IndexDetails < Resource
       field primary_key : String?
       field deleted_documents : Int64?
     end
 
+    # Details reported by index-swap tasks.
     struct SwapDetails < Resource
       field swaps : Array(JSON::Any)?
     end
 
+    # Counts and filters reported by document mutation tasks.
     struct DocumentDetails < Resource
       field received_documents : Int64?
       field indexed_documents : Int64?
@@ -187,6 +199,7 @@ module Meilisearch::Crystal
       field original_filter : String?
     end
 
+    # Settings changed by a settings-update task.
     struct SettingsDetails < Resource
       field ranking_rules : Array(String)?
       field filterable_attributes : Array(String)?
@@ -194,71 +207,85 @@ module Meilisearch::Crystal
       field searchable_attributes : Array(String)?
     end
 
+    # Counts reported by task cancellation and deletion operations.
     struct CountDetails < Resource
       field matched_tasks : Int64?
       field canceled_tasks : Int64?
       field deleted_tasks : Int64?
     end
 
+    # Identifier produced by a dump-creation task.
     struct DumpDetails < Resource
       field dump_uid : String?
     end
 
+    # A completed or pending index-creation task.
     struct IndexCreation < Task
       parseable
       getter details : IndexDetails?
     end
 
+    # A completed or pending index-update task.
     struct IndexUpdate < Task
       parseable
       getter details : IndexDetails?
     end
 
+    # A completed or pending index-deletion task.
     struct IndexDeletion < Task
       parseable
       getter details : IndexDetails?
     end
 
+    # A completed or pending index-swap task.
     struct IndexSwap < Task
       parseable
       getter details : SwapDetails?
     end
 
+    # A completed or pending document ingestion task.
     struct DocumentAdditionOrUpdate < Task
       parseable
       getter details : DocumentDetails?
     end
 
+    # A completed or pending document-deletion task.
     struct DocumentDeletion < Task
       parseable
       getter details : DocumentDetails?
     end
 
+    # A completed or pending settings-update task.
     struct SettingsUpdate < Task
       parseable
       getter details : SettingsDetails?
     end
 
+    # A completed or pending dump-creation task.
     struct DumpCreation < Task
       parseable
       getter details : DumpDetails?
     end
 
+    # A completed or pending task-cancellation task.
     struct TaskCancelation < Task
       parseable
       getter details : CountDetails?
     end
 
+    # A completed or pending task-deletion task.
     struct TaskDeletion < Task
       parseable
       getter details : CountDetails?
     end
 
+    # A completed or pending snapshot-creation task.
     struct SnapshotCreation < Task
       parseable
       getter details : JSON::Any?
     end
 
+    # Forward-compatible representation of an unknown task type.
     struct Unknown < Task
       parseable
       getter details : JSON::Any?

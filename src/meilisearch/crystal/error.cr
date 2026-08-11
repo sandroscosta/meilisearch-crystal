@@ -14,6 +14,7 @@ require "json"
 require "uri/json"
 
 module Meilisearch::Crystal
+  # A typed error response returned by Meilisearch.
   struct Error
     include JSON::Serializable
 

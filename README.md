@@ -15,8 +15,8 @@ SDK and the architecture of [jgaskins/meilisearch](https://github.com/jgaskins/m
   Kemal, Athena, or bare scripts.
 - **Zero runtime dependencies.** Only the Crystal stdlib (`http`, `json`).
 
-[![CI](https://github.com/<your-github-user>/meilisearch-crystal/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-github-user>/meilisearch-crystal/actions/workflows/ci.yml)
-[![GitHub Pages](https://img.shields.io/badge/docs-github%20pages-blue)](https://<your-github-user>.github.io/meilisearch-crystal/)
+[![CI](https://github.com/sandroscosta/meilisearch-crystal/actions/workflows/ci.yml/badge.svg)](https://github.com/sandroscosta/meilisearch-crystal/actions/workflows/ci.yml)
+[![GitHub Pages](https://img.shields.io/badge/docs-github%20pages-blue)](https://sandroscosta.github.io/meilisearch-crystal/)
 
 ## Table of contents
 
@@ -43,11 +43,11 @@ client = Meilisearch::Crystal::Client.new(
   api_key: "masterKey",
 )
 
-client.indexes.create "books", primary_key: "id"
+client.indexes.create("books", "id")
 # => Meilisearch::Crystal::TaskResult
 
 book = {id: 1, title: "Shazam", rating: 7.5}
-client.index("books").upsert [book]
+client.index("books").documents.upsert("books", [book])
 # => Meilisearch::Crystal::TaskResult
 
 client.index("books").search("shazam").hits
@@ -61,7 +61,7 @@ client.index("books").search("shazam").hits
    ```yaml
    dependencies:
      meilisearch-crystal:
-       github: <your-github-user>/meilisearch-crystal
+       github: sandroscosta/meilisearch-crystal
    ```
 
 2. Run `shards install`
@@ -119,62 +119,78 @@ results.hits                      # Array(Book)
 index = client.index("books")
 
 # upsert (add or replace, keyed by primary key)
-index.upsert [{id: 1, title: "Shazam"}]
-index.upsert! [{id: 1, title: "Shazam"}]            # blocking: waits for the task
+index.documents.upsert("books", [{id: 1, title: "Shazam"}])
+index.documents.upsert!("books", [{id: 1, title: "Shazam"}]) # waits for the task
 
 # upsert-patch (add or merge, missing fields preserved)
-index.upsert_patch [{id: 1, rating: 7.5}]
+index.documents.upsert_patch("books", [{id: 1, rating: 7.5}])
 
 # fetch documents (POST documents/fetch) — raw or typed
-index.fetch(limit: 10, as: Book)
+index.documents.fetch("books", limit: 10, as: Book)
 
 # delete documents
-index.delete(1)                                       # by primary key
-index.delete(filter: "rating < 5")                    # matching a filter
+index.documents.delete("books", 1)                    # by primary key
+index.documents.delete("books", filter: "rating < 5") # matching a filter
 
 # streaming upsert — bounded memory, works with any Enumerable
-client.index("books").upsert PostQuery.new            # e.g. a DB iterator
+client.index("books").documents.upsert("books", PostQuery.new)
 ```
 
 ## Search
 
 ```crystal
-index.search("shazam", limit: 10, filter: "rating > 5", sort: ["rating:desc"])
+query = Meilisearch::Crystal::Query.new(
+  q: "shazam",
+  limit: 10,
+  filter: "rating > 5",
+  sort: ["rating:desc"],
+)
+index.search(query)
 # => Meilisearch::Crystal::SearchResponse(JSON::Any)
 
-index.facet_search("genres", "fiction", filter: "rating > 3")
+request = Meilisearch::Crystal::FacetSearchRequest.new(
+  "genres",
+  "fiction",
+  filter: "rating > 3",
+)
+index.facet_search(request)
 # => Meilisearch::Crystal::FacetSearchResponse
 
-index.similar(1, embedder: "default", as: Book)
+index.similar(1, "default", as: Book)
 
 # multi-search across indexes, optionally federated:
-client.multi_search [client.query(index_uid: "books", q: "shazam")], as: Book
-client.federated_search [client.query(index_uid: "books", q: "shazam")], limit: 20
+queries = [Meilisearch::Crystal::Query.new(index_uid: "books", q: "shazam")]
+client.search.multi(queries, as: Book)
+client.search.federated(
+  queries,
+  Meilisearch::Crystal::MultiSearch::Federation.new(limit: 20),
+  as: Book,
+)
 ```
 
 ## Settings
 
 ```crystal
-settings = client.indexes.settings.get("books")       # typed Settings struct
-client.indexes.settings.update("books",
+settings = client.index("books").settings             # typed Settings struct
+client.settings.update("books", Meilisearch::Crystal::Settings.new(
   filterable_attributes: ["rating"],
   sortable_attributes: ["rating"],
-)
-client.indexes.settings.reset("books")
+))
+client.settings.reset("books")
 ```
 
 ## Tasks
 
 ```crystal
-task = client.index("books").upsert [{id: 1, title: "Shazam"}]
-client.wait_for_task(task)                            # blocks this fiber, not the process
-task.status.succeeded?                                # enum predicate
+task = client.index("books").documents.upsert("books", [{id: 1, title: "Shazam"}])
+completed = client.wait_for_task(task)                # blocks this fiber, not the process
+completed.succeeded?                                  # typed predicate
 ```
 
 ## API keys
 
 ```crystal
-key = client.keys.create(actions: ["search"], indexes: ["books"])
+key = client.keys.create(["search"], ["books"])
 client.keys.list
 client.keys.get?(key.uid)
 client.keys.delete(key.uid)
@@ -190,8 +206,8 @@ client.keys.delete(key.uid)
   with those is valid — `NamedTuple`s, `Hash(String, JSON::Any)`, or your own
   structs.
 - The client does not auto-retry requests; handle errors where they matter.
-  Server-originated failures raise `Meilisearch::Crystal::Error` with a typed
-  error code.
+  Server-originated failures raise `Meilisearch::Crystal::ApiError`, carrying
+  a parsed `Meilisearch::Crystal::Error` with a typed error code.
 
 ## Development
 
@@ -203,7 +219,7 @@ crystal spec spec/meilisearch/crystal/*_spec.cr
 
 # integration specs — spin up a real Meilisearch first:
 docker run --rm -p 7700:7700 -e MEILI_MASTER_KEY=test-master-key getmeili/meilisearch:v1.53.0
-crystal spec
+MEILISEARCH_INTEGRATION=1 MEILISEARCH_API_KEY=test-master-key crystal spec
 
 # lint + format
 # ameba v1.7.0-dev is installed from source; compile and run the CLI source.
@@ -214,7 +230,7 @@ crystal tool format --check
 ## API docs
 
 Generated API documentation is published to GitHub Pages from `main` and is
-available at <https://<your-github-user>.github.io/meilisearch-crystal/>.
+available at <https://sandroscosta.github.io/meilisearch-crystal/>.
 Build locally with:
 
 ```sh
@@ -223,4 +239,4 @@ crystal docs
 
 ## Contributors
 
-- [Sandro Costa](https://github.com/<your-github-user>) - creator and maintainer
+- [Sandro Costa](https://github.com/sandroscosta) - creator and maintainer

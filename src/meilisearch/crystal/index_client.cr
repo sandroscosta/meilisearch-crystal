@@ -4,6 +4,7 @@
 # `Documents` / `Search` / `Settings` resources (filled in as those resources
 # land). For now it carries the binding and the metadata snapshot accessor.
 module Meilisearch::Crystal
+  # A client handle bound to one index uid.
   class IndexClient
     getter client : Client
     getter uid : String

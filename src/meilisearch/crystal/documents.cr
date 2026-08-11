@@ -1,5 +1,6 @@
 # Document write, fetch, and deletion API.
 module Meilisearch::Crystal
+  # Index document ingestion, retrieval, and deletion operations.
   class Documents < API
     def upsert(uid : String, documents : Array, primary_key : String? = nil) : TaskResult
       response(client.post(documents_path(uid, primary_key), documents.to_json), as: TaskResult)
@@ -33,7 +34,7 @@ module Meilisearch::Crystal
               offset : Int32? = nil,
               limit : Int32? = nil,
               fields : Enumerable(String)? = nil,
-              ids : Array(String) | Array(Int32) | Array(Int64) | Nil = nil,
+              ids : (Array(String) | Array(Int32) | Array(Int64))? = nil,
               filter : String? = nil,
               sort : Enumerable(String)? = nil) : List(JSON::Any)
       fetch(uid, JSON::Any, offset, limit, fields, ids, filter, sort)
@@ -44,7 +45,7 @@ module Meilisearch::Crystal
               offset : Int32? = nil,
               limit : Int32? = nil,
               fields : Enumerable(String)? = nil,
-              ids : Array(String) | Array(Int32) | Array(Int64) | Nil = nil,
+              ids : (Array(String) | Array(Int32) | Array(Int64))? = nil,
               filter : String? = nil,
               sort : Enumerable(String)? = nil) : List(T) forall T
       body = JSON.build do |json|
@@ -97,7 +98,7 @@ module Meilisearch::Crystal
                       end
       response(http_response, as: TaskResult)
     ensure
-      reader.try &.close
+      reader.try(&.close)
     end
 
     private def await_success(result : TaskResult, timeout : Time::Span?, poll_interval : Time::Span) : BasicTask

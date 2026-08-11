@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 module Meilisearch::Crystal
-  Resource.define ExampleResource do
+  Resource.define(ExampleResource) do
     field primary_key : String
     field? available : Bool
     field! optional_count : Int32

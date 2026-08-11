@@ -10,40 +10,40 @@ module Meilisearch::Crystal
     # lower-camel-case keys used by Meilisearch.
     macro field(declaration)
       {% name = declaration.var %}
-      @[JSON::Field(key: {{name.stringify.camelcase(lower: true)}})]
-      getter {{declaration}}
+      @[JSON::Field(key: {{ name.stringify.camelcase(lower: true) }})]
+      getter {{ declaration }}
     end
 
     # Defines a boolean JSON field with an idiomatic predicate getter.
     macro field?(declaration)
       {% name = declaration.var %}
-      @[JSON::Field(key: {{name.stringify.camelcase(lower: true)}})]
-      getter? {{declaration}}
+      @[JSON::Field(key: {{ name.stringify.camelcase(lower: true) }})]
+      getter? {{ declaration }}
     end
 
     # Defines a field that may be absent in JSON but exposes a non-nil bang
     # accessor. Accessing a missing value raises the library's `MissingValue`.
     macro field!(declaration)
       {% name = declaration.var %}
-      @[JSON::Field(key: {{name.stringify.camelcase(lower: true)}})]
-      @{{name}} : {{declaration.type}}?
+      @[JSON::Field(key: {{ name.stringify.camelcase(lower: true) }})]
+      @{{ name }} : {{ declaration.type }}?
 
-      def {{name}}? : {{declaration.type}}?
-        @{{name}}
+      def {{ name }}? : {{ declaration.type }}?
+        @{{ name }}
       end
 
-      def {{name}}! : {{declaration.type}}
-        value = @{{name}}
+      def {{ name }}! : {{ declaration.type }}
+        value = @{{ name }}
         return value unless value.nil?
 
-        raise MissingValue.new("Missing value: {{name}}")
+        raise MissingValue.new("Missing value: {{ name }}")
       end
     end
 
     # Declares a named resource without repeating the base type and JSON mixin.
     macro define(name, &block)
-      struct {{name}} < ::Meilisearch::Crystal::Resource
-        {{block.body}}
+      struct {{ name }} < ::Meilisearch::Crystal::Resource
+        {{ block.body }}
       end
     end
   end

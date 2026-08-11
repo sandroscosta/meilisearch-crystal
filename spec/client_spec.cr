@@ -3,7 +3,7 @@ require "webmock"
 
 module Meilisearch::Crystal
   private class PassthroughAPI < API
-    pass get
+    pass(get)
   end
 
   describe Client do

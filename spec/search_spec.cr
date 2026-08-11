@@ -52,13 +52,13 @@ module Meilisearch::Crystal
     it "supports typed multi-search and federated hits" do
       multi_body = %({"results":[{"indexUid":"movies","hits":[{"id":1,"title":"Alien"}],"query":"alien","processingTimeMs":1,"estimatedTotalHits":1,"limit":20,"offset":0}]})
       federation_body = %({"hits":[{"id":1,"title":"Alien","_federation":{"indexUid":"movies","queriesPosition":0}}],"processingTimeMs":1,"estimatedTotalHits":1,"limit":20,"offset":0})
-      stub = WebMock.stub(:post, "http://localhost:7700/multi-search").to_return(body: multi_body)
+      WebMock.stub(:post, "http://localhost:7700/multi-search").to_return(body: multi_body)
 
       search = Client.new.search
       query = Query.new(q: "alien", index_uid: "movies")
       search.multi([query], as: SearchMovie).results.first.first.title.should eq("Alien")
       WebMock.reset
-      stub = WebMock.stub(:post, "http://localhost:7700/multi-search").to_return(body: federation_body)
+      WebMock.stub(:post, "http://localhost:7700/multi-search").to_return(body: federation_body)
       hit = search.federated([query], MultiSearch::Federation.new, as: SearchMovie).first
       hit.document.title.should eq("Alien")
       hit.federation.index_uid.should eq("movies")

@@ -4,11 +4,10 @@ module Meilisearch::Crystal
   if ENV["MEILISEARCH_INTEGRATION"]? == "1"
     describe "management integration" do
       it "covers keys, health, stats, backups, and tenant tokens" do
+        allow_integration_connections
         client = Client.new
         uid = "crystal_management_#{Time.utc.to_unix_ms}"
         key_uid = "11111111-1111-4111-8111-#{Time.utc.to_unix_ms.to_s[-12, 12]}"
-        created_key : Key? = nil
-
         begin
           client.health.status.should eq("available")
           client.version.pkg_version.should eq("1.53.0")
