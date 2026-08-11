@@ -39,4 +39,7 @@ jobs:
       - name: Check format
         run: crystal tool format --check
       - name: Lint
-        run: lib/ameba/bin/ameba
+        # ameba v1.7.0-dev doesn't ship a pre-built binary, so we compile and run
+        # the CLI source in one step. This also works on newer Crystal versions
+        # where the previous 1.6.x stable release failed to build.
+        run: crystal run lib/ameba/bin/ameba.cr

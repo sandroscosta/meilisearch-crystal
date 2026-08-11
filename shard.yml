@@ -6,14 +6,14 @@ description: A type-safe Meilisearch client for Crystal, inspired by the meilise
 authors:
   - Sandro Costa <sandro.nbs@gmail.com>
 
-crystal: '>= 1.20.3'
+crystal: '>= 1.20.0'
 
 license: MIT
 
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 1.6.4
+    tag: v1.6.4
   webmock:
     github: manastech/webmock.cr
     version: ~> 0.14.0
